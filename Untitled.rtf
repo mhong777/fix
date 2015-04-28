@@ -1,0 +1,145 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
+{\fonttbl\f0\fnil\fcharset0 Calibri;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww13960\viewh15020\viewkind0
+\deftab720
+\pard\pardeftab720
+
+\f0\fs26 \cf0 // Include gulp and shared dependencies\
+var gulp = require('gulp'),\
+\'a0 server = require('gulp-develop-server'),\
+\'a0 ngAnnotate = require('gulp-ng-annotate'),\
+\'a0 connect = require('gulp-connect'),\
+\'a0 useref = require('gulp-useref'),\
+\'a0 gulpif = require('gulp-if'),\
+\'a0 changed = require('gulp-changed'),\
+\'a0 imagemin = require('gulp-imagemin'),\
+\'a0 uglify = require('gulp-uglify'),\
+\'a0 notify = require('gulp-notify'),\
+\'a0 autoprefix = require('gulp-autoprefixer'),\
+\'a0 minifyCSS = require('gulp-minify-css'),\
+\'a0 templateCache = require('gulp-angular-templatecache');\
+\'a0\
+//source dev folder\
+var appAssetSrc = 'websrc';\
+//deployment folder\
+var appAssetDest = 'web-app';\
+//main module name\
+var moduleName = 'usaiddApp';\
+\'a0\
+var paths = \{\
+\'a0 src: \{\
+\'a0\'a0\'a0 scripts: appAssetSrc + '/scripts/**/*.js',\
+\'a0\'a0\'a0 map_data: appAssetSrc + '/map_data/**/*.js',\
+\'a0\'a0\'a0 views: appAssetSrc + '/views/**/*.html',\
+\'a0\'a0\'a0 mainview: appAssetSrc + '/index.html',\
+\'a0\'a0\'a0 images: appAssetSrc + '/images/**/*.png',\
+\'a0\'a0\'a0 data: appAssetSrc + '/data/**/*.pdf',\
+\'a0\'a0\'a0 fonts: appAssetSrc + '/bower_components/bootstrap/fonts/*'\
+\'a0 \},\
+\'a0 dest: \{\
+\'a0\'a0\'a0 scripts: appAssetDest + '/js',\
+\'a0\'a0\'a0 views: appAssetDest + '/views/',\
+\'a0\'a0\'a0 styles: appAssetDest + '/css',\
+\'a0\'a0\'a0 images: appAssetDest + '/images',\
+\'a0\'a0\'a0 data: appAssetDest + '/data',\
+\'a0\'a0\'a0 fonts: appAssetDest + '/fonts'\
+\'a0 \}\
+\};\
+\'a0\
+gulp.task('buildblocks', ['tempcache'], function () \{\
+\'a0 var assets = useref.assets();\
+\'a0 return gulp.src(paths.src.mainview)\
+\'a0\'a0\'a0 .pipe(assets)\
+\'a0\'a0\'a0 .pipe(gulpif('*.js', ngAnnotate()))\
+\'a0\'a0\'a0 .pipe(gulpif(!'nocatjs'&&'*.js', uglify()))\
+\'a0\'a0\'a0 .pipe(gulpif(['*.css'], minifyCSS()))\
+\'a0\'a0\'a0 .pipe(gulpif(['*.css'], autoprefix("last 2 version", "> 1%")))\
+\'a0\'a0\'a0 .pipe(assets.restore())\
+\'a0\'a0\'a0 .pipe(useref())\
+\'a0\'a0\'a0 .pipe(notify(\{\
+\'a0\'a0\'a0\'a0\'a0 title: 'Concat, Min all CSS & JS declared in source index build: blocks',\
+\'a0\'a0\'a0\'a0\'a0 message: 'Job has finished',\
+\'a0\'a0\'a0\'a0\'a0 onLast: true\
+\'a0\'a0\'a0 \}))\
+\'a0\'a0\'a0 .pipe(gulp.dest(appAssetDest));\
+\});\
+\'a0\
+//make an angular template cache\
+gulp.task('tempcache', function () \{\
+\'a0 gulp.src(paths.src.views)\
+\'a0\'a0\'a0 .pipe(templateCache(\{\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0 module: moduleName,\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0 root: 'views/'\
+\'a0\'a0\'a0\'a0\'a0 \}\
+\'a0\'a0\'a0 ))\
+\'a0\'a0\'a0 .pipe(gulp.dest(appAssetSrc + '/scripts'));\
+\});\
+\'a0\
+gulp.task('images', function () \{\
+\'a0 return gulp.src(paths.src.images)\
+\'a0\'a0\'a0 .pipe(changed(paths.dest.images)) // Ignore unchanged files\
+\'a0\'a0\'a0 .pipe(imagemin()) // Optimize\
+\'a0\'a0\'a0 .pipe(notify(\{\
+\'a0\'a0\'a0\'a0\'a0 title: 'Images optimized',\
+\'a0\'a0\'a0\'a0\'a0 message: 'Job has finished',\
+\'a0\'a0\'a0\'a0\'a0 onLast: true\
+\'a0\'a0\'a0 \}))\
+\'a0\'a0\'a0 .pipe(gulp.dest(paths.dest.images));\
+\});\
+\'a0\
+gulp.task('favicon', function () \{\
+\'a0 return gulp.src(appAssetSrc + '/favicon.ico')\
+\'a0\'a0\'a0 .pipe(changed(appAssetDest))\
+\'a0\'a0\'a0 .pipe(gulp.dest(appAssetDest));\
+\});\
+\'a0\
+gulp.task('fonts', [], function () \{\
+\'a0 gulp.src(paths.src.fonts)\
+\'a0\'a0\'a0 .pipe(changed(paths.dest.fonts))\
+\'a0\'a0\'a0 .pipe(notify(\{\
+\'a0\'a0\'a0\'a0\'a0 title: 'Fonts copied',\
+\'a0\'a0\'a0\'a0\'a0 message: 'Job has finished',\
+\'a0\'a0\'a0\'a0\'a0 onLast: true\
+\'a0\'a0\'a0 \}))\
+\'a0\'a0\'a0 .pipe(gulp.dest(paths.dest.fonts));\
+\});\
+\'a0\
+gulp.task('data', [], function () \{\
+\'a0 gulp.src(paths.src.data)\
+\'a0\'a0\'a0.pipe(changed(paths.dest.data))\
+\'a0\'a0\'a0 .pipe(notify(\{\
+\'a0\'a0\'a0\'a0\'a0 title: 'Data copied',\
+\'a0\'a0\'a0\'a0\'a0 message: 'Job has finished',\
+\'a0\'a0\'a0\'a0\'a0 onLast: true\
+\'a0\'a0\'a0 \}))\
+\'a0\'a0\'a0 .pipe(gulp.dest(paths.dest.data));\
+\});\
+\'a0\
+//defines our webserver\
+gulp.task('serve', function () \{\
+\'a0 connect.server(\{\
+\'a0\'a0\'a0 //specify our root hosting location\
+\'a0\'a0\'a0 root: 'web-app',\
+\'a0\'a0\'a0 port: 8100,\
+\'a0\'a0\'a0 livereload: true\
+\'a0 \});\
+\});\
+\'a0\
+gulp.task('watch', function () \{\
+\'a0 // watches JavaScript files for changes\
+\'a0 gulp.watch(appAssetSrc + '/scripts/**/*.js', ['buildblocks'], server.restart);\
+\'a0\
+\'a0 // watches Mapdata files for changes\
+\'a0 gulp.watch(appAssetSrc + '/map_data/**/*.js', ['buildblocks'], server.restart);\
+\'a0\
+\'a0 // watches html files for changes\
+\'a0 gulp.watch(appAssetSrc + '/**/*.html', ['buildblocks'], server.restart);\
+\'a0\
+\'a0 // watches css files for changes\
+\'a0 gulp.watch(appAssetSrc + '/css/**/*.css', ['buildblocks'], server.restart);\
+\});\
+\'a0\
+gulp.task('default', ['deploy', 'serve']);\
+gulp.task('deploy', ['buildblocks', 'images', 'data', 'fonts', 'favicon']);\
+}
